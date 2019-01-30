@@ -67,15 +67,15 @@ score
 // Parachute
 
 var paths = [
-    [2,2,1,0,0],
+    [1,2,1,0,0],
     [2,1,1,0,0],
-    [1,2,1,0,0]
+    [0,1,0,0,0]
 ]
 
 cf.c("Parachute", {
     init: function() {
         this.addComponent("2D, Canvas, Color, Collision");
-        this.x = setup.width - (setup.tile * 3);
+        this.x = 0;
         this.y = 0;
         this.w = setup.tile;
         this.h = setup.tile;
@@ -85,14 +85,18 @@ cf.c("Parachute", {
         this.path = paths[cf.math.randomInt(0, paths.length - 1)]
     },
 
-    remove: function() {
-        //Crafty.log('Parachute was removed!');
-    },
+    spawn: function(initialX, initialY) {
+        this.x = initialX;
+        this.y = initialY;
 
-    spawn: function() {
-        // Draw
+        //Draw
         this.color('orange');
 
+        // Return to allow chaining
+        return this;
+    },
+
+    startMovement: function() {
         this.bind("UpdateFrame", function(eventData) {
             if(eventData.frame % 50 == 0){
                 // Parachutes move at 1 tile/second
@@ -115,38 +119,78 @@ cf.c("Parachute", {
             }
         });
 
-        // There's no magic to method chaining.
-        // To allow it, we have to return the entity!
+        // Return to allow chaining
         return this;
-    }
+    },
+
+    remove: function() {
+        //Crafty.log('Parachute was removed!');
+    },
 })
 
-var helicopter = cf.e("2D, Canvas, Color");
+// Helicopter
+
+cf.c("Helicopter", {
+    init: function() {
+        this.addComponent("2D, Canvas, Color, Delay");
+        this.w =  setup.tile * 2,
+        this.h = setup.tile * 2,
+        this.x = setup.width - (setup.tile * 2),
+        this.launchInterval = 2000,
+        this.timer = 0
+    },
+
+    remove: function() {
+
+    },
+
+    generateLaunchLocation: function(){
+        var launchX = setup.width - this.w - (cf.math.randomInt(1,2) * setup.tile);
+        var launchY = cf.math.randomInt(0,1) * setup.tile;
+
+        var coords = [launchX, launchY];
+
+        return coords;
+    },
+
+    launchParachute: function() {
+        var chuteInterval = 300;
+
+
+
+        //var launchX = this.w - (cf.math.randomInt(1,2) * setup.tile);
+        //var launchY = cf.math.randomInt(0,1) * setup.tile;
+
+        this.bind('UpdateFrame', function(eventData){
+            this.timer+= eventData.dt;
+
+            if(this.timer >= this.launchInterval){
+                var loc = this.generateLaunchLocation();
+
+                cf.e('Parachute')
+                    .spawn(loc[0], loc[1])
+                    .startMovement();
+
+                /*this.delay(function(){
+                    cf.e('Parachute').spawn().color('red');
+                }, 800, 0);*/
+
+                /*if (this.interval > this.minInterval) {
+                    this.interval -=100;
+                }*/
+
+                this.timer = 0;
+            }
+        });
+        return this;
+    }
+});
+
+var helicopter = cf.e("Helicopter");
 
 helicopter
-    .attr({
-        w: setup.tile * 2,
-        h: setup.tile * 1,
-        x: setup.width - (setup.tile * 2),
-        interval: 3000,
-        minInterval: 800,
-        timer: 0
-    })
     .color('blue')
-    .bind('UpdateFrame', function(eventData){
-        this.timer+= eventData.dt;
-
-        if(this.timer >= this.interval){
-            //cf.e('Parachute').spawn();
-
-            if (this.interval > this.minInterval) {
-                this.interval -=100;
-            }
-
-            this.timer = 0;
-
-        }
-    });
+    .launchParachute();
 
 
 
