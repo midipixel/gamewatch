@@ -1,4 +1,27 @@
 #game{
     border: 1px solid black;
+}
+
+.show_grid{
     background: url(img/grid.png);
+}
+
+.titleScene{
+    font: 1em Impact;
+    text-transform: uppercase;
+    background: #7e1dde;
+    height: 100%;
+    text-align: center;
+    padding-top: 0.1rem;
+}
+
+.titleScene h1{
+    margin: 2rem 0 2rem 0;
+    color: aliceblue;
+}
+
+.titleScene button{
+    background: lime;
+    border: none;
+    padding: 1rem;
 }
